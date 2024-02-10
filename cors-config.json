@@ -1,6 +1,6 @@
 [
     {
-        "origin": ["http://localhost:3000"],
+        "origin": ["https://browserrecorder.onrender.com"],
         "responseHeader": ["Content-Type"],
         "method": ["PUT", "POST", "GET", "OPTIONS"],
         "maxAgeSeconds": 3600

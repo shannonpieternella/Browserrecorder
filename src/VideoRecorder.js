@@ -9,7 +9,7 @@ const VideoRecorder = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   let recordedChunks = [];
 
-  const handleStartCaptureClick = () => {
+  const handleStartCaptureClick = async () => {
     setCapturing(true);
     recordedChunks = [];
     const stream = webcamRef.current.video.srcObject;
@@ -17,7 +17,7 @@ const VideoRecorder = () => {
     let options = { mimeType: 'video/webm; codecs=vp9' };
 
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-      options = { mimeType: 'video/mp4; codecs=avc1.42E01E,mp4a.40.2' }; // H.264 video codec, AAC audio codec
+      options = { mimeType: 'video/mp4; codecs=avc1.42E01E,mp4a.40.2' };
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
         console.error("This browser doesn't support video recording in WebM or MP4 format.");
         return;
@@ -43,9 +43,12 @@ const VideoRecorder = () => {
       if (recordedBlob.size > 0) {
         try {
           const response = await fetch(`${process.env.REACT_APP_API_URL}/generate-signed-url`);
-          if (!response.ok) throw new Error('Failed to fetch signed URL.');
+          if (!response.ok) {
+            throw new Error('Failed to fetch signed URL.');
+          }
 
           const { url: signedUploadUrl } = await response.json();
+          console.log('Signed URL:', signedUploadUrl); // Log the signed URL
 
           const uploadResponse = await fetch(signedUploadUrl, {
             method: 'PUT',
@@ -55,9 +58,11 @@ const VideoRecorder = () => {
             body: recordedBlob,
           });
 
-          if (!uploadResponse.ok) throw new Error('Upload failed');
+          if (!uploadResponse.ok) {
+            throw new Error('Upload failed');
+          }
 
-          setVideoUrl(signedUploadUrl); // Set the video URL for playback
+          setVideoUrl(signedUploadUrl);
           console.log('Upload successful');
         } catch (error) {
           console.error('Upload error:', error.message);
@@ -67,7 +72,8 @@ const VideoRecorder = () => {
       }
     };
 
-    mediaRecorderRef.current.onerror = (event) => console.log("MediaRecorder Error:", event.error);
+    mediaRecorderRef.current.onerror = (event) =>
+      console.log('MediaRecorder Error:', event.error);
 
     mediaRecorderRef.current.start();
     console.log(`Recording started with MIME type: ${options.mimeType}`);
